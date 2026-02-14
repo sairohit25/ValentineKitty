@@ -36,6 +36,14 @@
     </div>
 
     <script>
+        // This tells the browser to look for the files in the same folder as index.html
+        const celebrateSound = new Audio('./celebrate.mp3');
+        const popSound = new Audio('./pop.mp3');
+
+        // Pre-load them so they play instantly
+        celebrateSound.load();
+        popSound.load();
+        
         const DB_URL = "https://valentinekitty-fa39c-default-rtdb.firebaseio.com/"; // PASTE YOUR URL HERE (Add .json at the end of your URL in the fetch calls below)
 
         const tokens = [
@@ -111,7 +119,8 @@
         async function redeem(tokenId, btn) {
             // Confirm with a browser popup (optional)
             if(!confirm("Are you sure? This token will be gone forever!")) return;
-
+            
+            popSound.play().catch(e => console.log("Audio play failed:", e));
             // Immediate UI feedback
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             
@@ -130,6 +139,7 @@
         }
 
         function accept() {
+            celebrateSound.play().catch(e => console.log("Audio play failed:", e));
             confetti({ particleCount: 200, spread: 100 });
             document.getElementById('ask-screen').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden-content');
@@ -138,4 +148,5 @@
 </body>
 
 </html>
+
 
