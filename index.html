@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        .font-cursive { font-family: 'Sacramento', cursive; }
+        .glass { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        body { background: linear-gradient(135deg, #fecdd3 0%, #fda4af 100%); min-height: 100vh; }
+        .hidden-content { display: none; }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div id="ask-screen" class="h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h1 class="text-6xl md:text-8xl text-white font-cursive mb-12 drop-shadow-lg">Will you be my Valentine?</h1>
+        <div class="flex flex-col md:flex-row gap-8 items-center justify-center min-h-[100px] w-full">
+            <button onclick="accept()" class="bg-white text-rose-500 font-bold px-16 py-5 rounded-full text-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all z-20">YES!</button>
+            <button id="no-btn" onmouseover="this.style.opacity='0'" onmouseout="this.style.opacity='1'" class="bg-rose-600 text-white font-bold px-12 py-4 rounded-full text-xl shadow-xl transition-opacity">No</button>
+        </div>
+    </div>
+
+    <div id="main-content" class="hidden-content py-16 px-4">
+        <div class="text-center mb-16">
+        <h1 class="text-7xl text-white font-cursive mb-4 drop-shadow-md">Yay! Happy Valentine's Day Kittyyyy!</h1>
+            <h1 class="text-7xl text-white font-cursive mb-4 drop-shadow-md">Your Love Tokens</h1>
+            <p class="text-rose-900 uppercase tracking-widest text-xs font-bold">One-Time Use Only • Choose Wisely</p>
+        </div>
+
+        <div id="token-grid" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+    </div>
+
+    <script>
+        const DB_URL = "YOUR_FIREBASE_URL_HERE"; // PASTE YOUR URL HERE (Add .json at the end of your URL in the fetch calls below)
+
+        const tokens = [
+            { id: "t1", icon: "🏆", title: "The Tie-Breaker", desc: "Instantly win any debate or choice of what to eat/watch." },
+            { id: "t2", icon: "🏠", title: "House Takeover", desc: "I handle everything for 24hrs while you just relax and give orders." },
+            { id: "t3", icon: "🛠️", title: "Tech Concierge", desc: "Unlimited digital help. I'll fix every bug and update every app." },
+            { id: "t4", icon: "💆", title: "The 30-Min Spa", desc: "A focused, professional-grade massage of your choice." },
+            { id: "t5", icon: "🍳", title: "Chef's Special", desc: "I cook your favorite meal from scratch and handle all cleanup." },
+            { id: "t6", icon: "🍫", title: "Snack Fetch", desc: "I will procure any craving immediately, no matter the time." }
+        ];
+
+        // 1. Check if she already said Yes or if tokens are redeemed
+        window.onload = async () => {
+            const response = await fetch(`${DB_URL}/redemptions.json`);
+            const data = await response.json() || {};
+            renderTokens(data);
+        };
+
+        function renderTokens(redemptionData) {
+            const grid = document.getElementById('token-grid');
+            grid.innerHTML = tokens.map(t => {
+                const isRedeemed = redemptionData[t.id] === true;
+                return `
+                    <div class="glass p-8 rounded-[2rem] shadow-2xl transition-all ${isRedeemed ? 'opacity-50 grayscale' : 'hover:-translate-y-2'}">
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="text-5xl">${t.icon}</span>
+                            <span class="text-[10px] font-black text-rose-900 border-2 border-rose-900 px-2 py-0.5 rounded-md">${t.id.toUpperCase()}</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">${t.title}</h3>
+                        <p class="text-rose-950/70 text-sm mb-8">${t.desc}</p>
+                        <button 
+                            onclick="redeem('${t.id}', this)" 
+                            ${isRedeemed ? 'disabled' : ''} 
+                            class="w-full ${isRedeemed ? 'bg-rose-200 text-rose-400' : 'bg-white text-rose-600'} font-black py-4 rounded-2xl shadow-lg transition-all">
+                            ${isRedeemed ? 'REDEEMED ✓' : 'REDEEM'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function redeem(tokenId, btn) {
+            // Confirm with a browser popup (optional)
+            if(!confirm("Are you sure? This token will be gone forever!")) return;
+
+            // Immediate UI feedback
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            
+            // Save to Firebase (Permanent Memory)
+            await fetch(`${DB_URL}/redemptions/${tokenId}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(true)
+            });
+
+            // Update UI
+            btn.innerText = "REDEEMED ✓";
+            btn.disabled = true;
+            btn.classList.replace('bg-white', 'bg-rose-200');
+            btn.classList.replace('text-rose-600', 'text-rose-400');
+            btn.parentElement.classList.add('opacity-50', 'grayscale');
+        }
+
+        function accept() {
+            confetti({ particleCount: 200, spread: 100 });
+            document.getElementById('ask-screen').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden-content');
+        }
+    </script>
+</body>
+</html>
