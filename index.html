@@ -12,6 +12,11 @@
         .glass { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
         body { background: linear-gradient(135deg, #fecdd3 0%, #fda4af 100%); min-height: 100vh; }
         .hidden-content { display: none; }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+        .heart { position: fixed; bottom: -10%; user-select: none; pointer-events: none; z-index: 0; animation: float linear forwards; }
     </style>
 </head>
 <body class="font-sans">
@@ -20,7 +25,10 @@
         <h1 class="text-6xl md:text-8xl text-white font-cursive mb-12 drop-shadow-lg">Will you be my Valentine?</h1>
         <div class="flex flex-col md:flex-row gap-8 items-center justify-center min-h-[100px] w-full">
             <button onclick="accept()" class="bg-white text-rose-500 font-bold px-16 py-5 rounded-full text-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all z-20">YES!</button>
-            <button id="no-btn" onmouseover="this.style.opacity='0'" onmouseout="this.style.opacity='1'" class="bg-rose-600 text-white font-bold px-12 py-4 rounded-full text-xl shadow-xl transition-opacity">No</button>
+            <button id="no-btn" 
+                    onmouseover="vanishNo()" 
+                    ontouchstart="vanishNo()" 
+                    class="bg-rose-600 text-white font-bold px-12 py-4 rounded-full text-xl shadow-xl transition-opacity duration-200">No</button>
         </div>
     </div>
 
@@ -30,15 +38,18 @@
             <h1 class="text-7xl text-white font-cursive mb-4 drop-shadow-md">Your Love Tokens</h1>
             <p class="text-rose-900 uppercase tracking-widest text-xs font-bold">One-Time Use Only • Choose Wisely</p>
         </div>
-
-        <div id="token-grid" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            </div>
+        
+        <div id="token-grid" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        <footer class="mt-20 text-center text-white/60 text-xs pb-10">
+            <p>Built with ❤️ • System updates coming soon</p>
+        </footer>
     </div>
 
     <script>
         // This tells the browser to look for the files in the same folder as index.html
         const celebrateSound = new Audio('./celebrate.mp3');
         const popSound = new Audio('./pop.mp3');
+        const noSound = new Audio('./no.mp3');
 
         // Pre-load them so they play instantly
         celebrateSound.load();
@@ -93,6 +104,30 @@
             renderTokens(data);
         };
 
+        function vanishNo() {
+            noSound.play().catch(() => {});
+            const btn = document.getElementById('no-btn');
+            btn.style.opacity = '0';
+            btn.style.pointerEvents = 'none';
+            setTimeout(() => {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }, 2000);
+        }
+
+        function startHearts() {
+            setInterval(() => {
+                const heart = document.createElement("div");
+                heart.innerHTML = ["❤️", "💖", "💝", "💕", "🌸"][Math.floor(Math.random() * 5)];
+                heart.classList.add("heart");
+                heart.style.left = Math.random() * 100 + "vw";
+                const duration = Math.random() * 3 + 2;
+                heart.style.animationDuration = duration + "s";
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), duration * 1000);
+            }, 300);
+        }
+
         function renderTokens(redemptionData) {
             const grid = document.getElementById('token-grid');
             grid.innerHTML = tokens.map(t => {
@@ -139,6 +174,7 @@
         }
 
         function accept() {
+            startHearts(); // Start the floating hearts
             celebrateSound.play().catch(e => console.log("Audio play failed:", e));
             confetti({ particleCount: 200, spread: 100 });
             document.getElementById('ask-screen').style.display = 'none';
@@ -148,5 +184,6 @@
 </body>
 
 </html>
+
 
 
